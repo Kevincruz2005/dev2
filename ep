@@ -1,0 +1,51 @@
+package com.example.demo.pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
+public class EmployeePage {
+    WebDriver driver;
+
+    By empName    = By.id("empName");
+    By empRole    = By.id("empRole");
+    By addBtn     = By.id("addBtn");
+    By addSuccess = By.id("addSuccess");
+    By addError   = By.id("addError");
+    By searchName   = By.id("searchName");
+    By searchBtn    = By.id("searchBtn");
+    By searchResult = By.id("searchResult");
+    By searchError  = By.id("searchError");
+
+    public EmployeePage(WebDriver driver) { this.driver = driver; }
+
+    public void addEmployee(String name, String role) {
+        driver.findElement(empName).sendKeys(name);
+        driver.findElement(empRole).sendKeys(role);
+        driver.findElement(addBtn).click();
+    }
+
+    public boolean isAddSuccessVisible() {
+        return driver.findElement(addSuccess).isDisplayed();
+    }
+
+    public boolean isAddErrorVisible() {
+        return driver.findElement(addError).isDisplayed();
+    }
+
+    public void goToSearch() {
+        driver.findElement(By.xpath("//button[text()='Go to Search']")).click();
+    }
+
+    public void searchEmployee(String name) {
+        driver.findElement(searchName).sendKeys(name);
+        driver.findElement(searchBtn).click();
+    }
+
+    public boolean isSearchResultVisible() {
+        return driver.findElement(searchResult).isDisplayed();
+    }
+
+    public boolean isSearchErrorVisible() {
+        return driver.findElement(searchError).isDisplayed();
+    }
+}
