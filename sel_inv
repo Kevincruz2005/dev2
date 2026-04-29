@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head><title>Inventory Management System</title></head>
+<body>
+  <div id="loginPage">
+    <h2>Inventory Login</h2>
+    <input id="username" type="text" placeholder="Username"><br><br>
+    <input id="password" type="password" placeholder="Password"><br><br>
+    <button id="loginBtn" onclick="login()">Login</button>
+    <p id="loginError" style="color:red;display:none">Invalid credentials</p>
+  </div>
+
+  <div id="addPage" style="display:none">
+    <h2>Add Product</h2>
+    <input id="productName" type="text" placeholder="Product Name"><br><br>
+    <input id="productQty" type="number" placeholder="Quantity"><br><br>
+    <input id="productPrice" type="number" placeholder="Price"><br><br>
+    <button id="addBtn" onclick="addProduct()">Add Product</button>
+    <p id="addSuccess" style="color:green;display:none">Product Added Successfully</p>
+    <p id="addError" style="color:red;display:none">Please fill all fields</p>
+    <br><button onclick="showSearch()">Go to Search</button>
+  </div>
+
+  <div id="searchPage" style="display:none">
+    <h2>Search Product</h2>
+    <input id="searchName" type="text" placeholder="Search by Name"><br><br>
+    <button id="searchBtn" onclick="searchProduct()">Search</button>
+    <p id="searchResult" style="color:green;display:none"></p>
+    <p id="searchError" style="color:red;display:none">Product not found</p>
+    <br><button onclick="showAdd()">Go to Add</button>
+  </div>
+
+  <script>
+    var items = [];
+    function login() {
+      var u = document.getElementById("username").value;
+      var p = document.getElementById("password").value;
+      if (u === "admin" && p === "admin123") {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("addPage").style.display = "block";
+      } else {
+        document.getElementById("loginError").style.display = "block";
+      }
+    }
+    function addProduct() {
+      var name  = document.getElementById("productName").value;
+      var qty   = document.getElementById("productQty").value;
+      var price = document.getElementById("productPrice").value;
+      if (name === "" || qty === "" || price === "") {
+        document.getElementById("addError").style.display = "block";
+        document.getElementById("addSuccess").style.display = "none";
+      } else {
+        items.push({ name, qty, price });
+        document.getElementById("addSuccess").style.display = "block";
+        document.getElementById("addError").style.display = "none";
+        document.getElementById("productName").value = "";
+        document.getElementById("productQty").value = "";
+        document.getElementById("productPrice").value = "";
+      }
+    }
+    function searchProduct() {
+      var query = document.getElementById("searchName").value;
+      var found = items.find(i => i.name.toLowerCase() === query.toLowerCase());
+      if (found) {
+        document.getElementById("searchResult").innerText = "Found: " + found.name + " Qty: " + found.qty + " Price: " + found.price;
+        document.getElementById("searchResult").style.display = "block";
+        document.getElementById("searchError").style.display = "none";
+      } else {
+        document.getElementById("searchError").style.display = "block";
+        document.getElementById("searchResult").style.display = "none";
+      }
+    }
+    function showSearch() {
+      document.getElementById("addPage").style.display = "none";
+      document.getElementById("searchPage").style.display = "block";
+    }
+    function showAdd() {
+      document.getElementById("searchPage").style.display = "none";
+      document.getElementById("addPage").style.display = "block";
+    }
+  </script>
+</body>
+</html>
+
+package com.example.demo.tests;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class SeleniumInventoryTest {
+    static WebDriver driver;
+    static String url = "file:///C:/1_Priority/Sem-6/STA/sel/demo/inventory.html";
+
+    public static void main(String[] args) throws InterruptedException {
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+
+        testValidLogin();
+        testInvalidLogin();
+        testAddProductValid();
+        testAddProductEmpty();
+        testSearchFound();
+        testSearchNotFound();
+
+        driver.quit();
+        System.out.println("\n--- All Tests Done ---");
+    }
+
+    static void login(String u, String p) throws InterruptedException {
+        driver.get(url);
+        Thread.sleep(500);
+        driver.findElement(By.id("username")).sendKeys(u);
+        driver.findElement(By.id("password")).sendKeys(p);
+        driver.findElement(By.id("loginBtn")).click();
+        Thread.sleep(500);
+    }
+
+    static void testValidLogin() throws InterruptedException {
+        login("admin", "admin123");
+        boolean passed = driver.findElement(By.id("addPage")).isDisplayed();
+        System.out.println("Test 1 - Valid Login:        " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testInvalidLogin() throws InterruptedException {
+        login("admin", "wrong");
+        boolean passed = driver.findElement(By.id("loginError")).isDisplayed();
+        System.out.println("Test 2 - Invalid Login:      " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testAddProductValid() throws InterruptedException {
+        login("admin", "admin123");
+        driver.findElement(By.id("productName")).sendKeys("Laptop");
+        driver.findElement(By.id("productQty")).sendKeys("10");
+        driver.findElement(By.id("productPrice")).sendKeys("50000");
+        driver.findElement(By.id("addBtn")).click();
+        Thread.sleep(500);
+        boolean passed = driver.findElement(By.id("addSuccess")).isDisplayed();
+        System.out.println("Test 3 - Add Product Valid:  " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testAddProductEmpty() throws InterruptedException {
+        login("admin", "admin123");
+        driver.findElement(By.id("addBtn")).click();
+        Thread.sleep(500);
+        boolean passed = driver.findElement(By.id("addError")).isDisplayed();
+        System.out.println("Test 4 - Add Product Empty:  " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testSearchFound() throws InterruptedException {
+        login("admin", "admin123");
+        driver.findElement(By.id("productName")).sendKeys("Laptop");
+        driver.findElement(By.id("productQty")).sendKeys("10");
+        driver.findElement(By.id("productPrice")).sendKeys("50000");
+        driver.findElement(By.id("addBtn")).click();
+        Thread.sleep(500);
+        driver.findElement(By.xpath("//button[text()='Go to Search']")).click();
+        Thread.sleep(500);
+        driver.findElement(By.id("searchName")).sendKeys("Laptop");
+        driver.findElement(By.id("searchBtn")).click();
+        Thread.sleep(500);
+        boolean passed = driver.findElement(By.id("searchResult")).isDisplayed();
+        System.out.println("Test 5 - Search Found:       " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testSearchNotFound() throws InterruptedException {
+        login("admin", "admin123");
+        driver.findElement(By.xpath("//button[text()='Go to Search']")).click();
+        Thread.sleep(500);
+        driver.findElement(By.id("searchName")).sendKeys("Tablet");
+        driver.findElement(By.id("searchBtn")).click();
+        Thread.sleep(500);
+        boolean passed = driver.findElement(By.id("searchError")).isDisplayed();
+        System.out.println("Test 6 - Search Not Found:   " + (passed ? "PASS" : "FAIL"));
+    }
+}
