@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head><title>Student Registration System</title></head>
+<body>
+  <div id="loginPage">
+    <h2>Student Portal Login</h2>
+    <input id="username" type="text" placeholder="Username"><br><br>
+    <input id="password" type="password" placeholder="Password"><br><br>
+    <button id="loginBtn" onclick="login()">Login</button>
+    <p id="loginError" style="color:red;display:none">Invalid credentials</p>
+  </div>
+
+  <div id="addPage" style="display:none">
+    <h2>Register Student</h2>
+    <input id="studentName" type="text" placeholder="Student Name"><br><br>
+    <input id="studentRoll" type="text" placeholder="Roll Number"><br><br>
+    <input id="studentDept" type="text" placeholder="Department"><br><br>
+    <button id="addBtn" onclick="addStudent()">Register</button>
+    <p id="addSuccess" style="color:green;display:none">Student Registered Successfully</p>
+    <p id="addError" style="color:red;display:none">Please fill all fields</p>
+    <br><button onclick="showSearch()">Go to Search</button>
+  </div>
+
+  <div id="searchPage" style="display:none">
+    <h2>Search Student</h2>
+    <input id="searchName" type="text" placeholder="Search by Name"><br><br>
+    <button id="searchBtn" onclick="searchStudent()">Search</button>
+    <p id="searchResult" style="color:green;display:none"></p>
+    <p id="searchError" style="color:red;display:none">Student not found</p>
+    <br><button onclick="showAdd()">Go to Register</button>
+  </div>
+
+  <script>
+    var items = [];
+    function login() {
+      var u = document.getElementById("username").value;
+      var p = document.getElementById("password").value;
+      if (u === "admin" && p === "admin123") {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("addPage").style.display = "block";
+      } else {
+        document.getElementById("loginError").style.display = "block";
+      }
+    }
+    function addStudent() {
+      var name = document.getElementById("studentName").value;
+      var roll = document.getElementById("studentRoll").value;
+      var dept = document.getElementById("studentDept").value;
+      if (name === "" || roll === "" || dept === "") {
+        document.getElementById("addError").style.display = "block";
+        document.getElementById("addSuccess").style.display = "none";
+      } else {
+        items.push({ name, roll, dept });
+        document.getElementById("addSuccess").style.display = "block";
+        document.getElementById("addError").style.display = "none";
+        document.getElementById("studentName").value = "";
+        document.getElementById("studentRoll").value = "";
+        document.getElementById("studentDept").value = "";
+      }
+    }
+    function searchStudent() {
+      var query = document.getElementById("searchName").value;
+      var found = items.find(i => i.name.toLowerCase() === query.toLowerCase());
+      if (found) {
+        document.getElementById("searchResult").innerText = "Found: " + found.name + " Roll: " + found.roll + " Dept: " + found.dept;
+        document.getElementById("searchResult").style.display = "block";
+        document.getElementById("searchError").style.display = "none";
+      } else {
+        document.getElementById("searchError").style.display = "block";
+        document.getElementById("searchResult").style.display = "none";
+      }
+    }
+    function showSearch() {
+      document.getElementById("addPage").style.display = "none";
+      document.getElementById("searchPage").style.display = "block";
+    }
+    function showAdd() {
+      document.getElementById("searchPage").style.display = "none";
+      document.getElementById("addPage").style.display = "block";
+    }
+  </script>
+</body>
+</html>
+package com.example.demo.tests;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class SeleniumStudentTest {
+    static WebDriver driver;
+    static String url = "file:///C:/1_Priority/Sem-6/STA/sel/demo/student.html";
+
+    public static void main(String[] args) throws InterruptedException {
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+
+        testValidLogin();
+        testInvalidLogin();
+        testAddStudentValid();
+        testAddStudentEmpty();
+        testSearchFound();
+        testSearchNotFound();
+
+        driver.quit();
+        System.out.println("\n--- All Tests Done ---");
+    }
+
+    static void login(String u, String p) throws InterruptedException {
+        driver.get(url);
+        Thread.sleep(500);
+        driver.findElement(By.id("username")).sendKeys(u);
+        driver.findElement(By.id("password")).sendKeys(p);
+        driver.findElement(By.id("loginBtn")).click();
+        Thread.sleep(500);
+    }
+
+    static void testValidLogin() throws InterruptedException {
+        login("admin", "admin123");
+        boolean passed = driver.findElement(By.id("addPage")).isDisplayed();
+        System.out.println("Test 1 - Valid Login:         " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testInvalidLogin() throws InterruptedException {
+        login("admin", "wrong");
+        boolean passed = driver.findElement(By.id("loginError")).isDisplayed();
+        System.out.println("Test 2 - Invalid Login:       " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testAddStudentValid() throws InterruptedException {
+        login("admin", "admin123");
+        driver.findElement(By.id("studentName")).sendKeys("Kevin");
+        driver.findElement(By.id("studentRoll")).sendKeys("CSE101");
+        driver.findElement(By.id("studentDept")).sendKeys("CSE");
+        driver.findElement(By.id("addBtn")).click();
+        Thread.sleep(500);
+        boolean passed = driver.findElement(By.id("addSuccess")).isDisplayed();
+        System.out.println("Test 3 - Add Student Valid:   " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testAddStudentEmpty() throws InterruptedException {
+        login("admin", "admin123");
+        driver.findElement(By.id("addBtn")).click();
+        Thread.sleep(500);
+        boolean passed = driver.findElement(By.id("addError")).isDisplayed();
+        System.out.println("Test 4 - Add Student Empty:   " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testSearchFound() throws InterruptedException {
+        login("admin", "admin123");
+        driver.findElement(By.id("studentName")).sendKeys("Kevin");
+        driver.findElement(By.id("studentRoll")).sendKeys("CSE101");
+        driver.findElement(By.id("studentDept")).sendKeys("CSE");
+        driver.findElement(By.id("addBtn")).click();
+        Thread.sleep(500);
+        driver.findElement(By.xpath("//button[text()='Go to Search']")).click();
+        Thread.sleep(500);
+        driver.findElement(By.id("searchName")).sendKeys("Kevin");
+        driver.findElement(By.id("searchBtn")).click();
+        Thread.sleep(500);
+        boolean passed = driver.findElement(By.id("searchResult")).isDisplayed();
+        System.out.println("Test 5 - Search Found:        " + (passed ? "PASS" : "FAIL"));
+    }
+
+    static void testSearchNotFound() throws InterruptedException {
+        login("admin", "admin123");
+        driver.findElement(By.xpath("//button[text()='Go to Search']")).click();
+        Thread.sleep(500);
+        driver.findElement(By.id("searchName")).sendKeys("Nobody");
+        driver.findElement(By.id("searchBtn")).click();
+        Thread.sleep(500);
+        boolean passed = driver.findElement(By.id("searchError")).isDisplayed();
+        System.out.println("Test 6 - Search Not Found:    " + (passed ? "PASS" : "FAIL"));
+    }
+}
