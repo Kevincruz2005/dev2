@@ -1,0 +1,107 @@
+package com.example.demo.tests;
+
+import com.example.demo.pages.LoginPage;
+import com.example.demo.pages.EmployeePage;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.Assert;
+import org.testng.annotations.*;
+import org.testng.asserts.SoftAssert;
+
+public class LoginTest {
+
+    WebDriver driver;
+    LoginPage loginPage;
+    EmployeePage employeePage;
+
+    String url = "file:///C:/1_Priority/Sem-6/STA/sel/demo/login.html";
+
+    @BeforeMethod
+    public void setup() {
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+        driver.get(url);
+        loginPage = new LoginPage(driver);
+        employeePage = new EmployeePage(driver);
+    }
+
+    // --- LOGIN TESTS ---
+
+    @Test(priority = 1)
+    public void testValidLogin() {
+        loginPage.login("admin", "admin123");
+        Assert.assertTrue(driver.findElement(By.id("addPage")).isDisplayed());
+    }
+
+    @Test(priority = 2)
+    public void testInvalidLogin() {
+        loginPage.login("admin", "wrong");
+        SoftAssert soft = new SoftAssert();
+        soft.assertTrue(loginPage.isErrorVisible());
+        soft.assertAll();
+    }
+
+    // --- ADD EMPLOYEE TESTS ---
+
+    @Test(priority = 3)
+    public void testAddEmployeeValid() {
+        loginPage.login("admin", "admin123");
+        employeePage.addEmployee("John", "Developer");
+        Assert.assertTrue(employeePage.isAddSuccessVisible());
+    }
+
+    @Test(priority = 4)
+    public void testAddEmployeeEmptyFields() {
+        loginPage.login("admin", "admin123");
+        employeePage.addEmployee("", "");
+        Assert.assertTrue(employeePage.isAddErrorVisible());
+    }
+
+    // --- SEARCH EMPLOYEE TESTS ---
+
+    @Test(priority = 5)
+    public void testSearchEmployeeFound() {
+        loginPage.login("admin", "admin123");
+        employeePage.addEmployee("John", "Developer");
+        employeePage.goToSearch();
+        employeePage.searchEmployee("John");
+        Assert.assertTrue(employeePage.isSearchResultVisible());
+    }
+
+    @Test(priority = 6)
+    public void testSearchEmployeeNotFound() {
+        loginPage.login("admin", "admin123");
+        employeePage.goToSearch();
+        employeePage.searchEmployee("Nobody");
+        Assert.assertTrue(employeePage.isSearchErrorVisible());
+    }
+
+    // --- DATA DRIVEN LOGIN ---
+
+    @DataProvider(name = "loginData")
+    public Object[][] loginData() {
+        return new Object[][] {
+            { "admin", "admin123", true  },
+            { "admin", "wrong",    false },
+            { "",      "",         false },
+        };
+    }
+
+    @Test(priority = 7, dataProvider = "loginData")
+    public void testLoginDDT(String user, String pass, boolean shouldPass) {
+        driver.get(url); // reset page between data rows
+        loginPage.login(user, pass);
+        if (shouldPass) {
+            Assert.assertTrue(driver.findElement(By.id("addPage")).isDisplayed());
+        } else {
+            Assert.assertTrue(loginPage.isErrorVisible());
+        }
+    }
+
+    @AfterMethod
+    public void teardown() {
+        driver.quit();
+    }
+}
+
